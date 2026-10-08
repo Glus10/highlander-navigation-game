@@ -1,0 +1,29 @@
+services:
+  web:
+    build:
+      context: .
+      # Optional overrides come from a local .env file (see .env.example); unset = defaults.
+      args:
+        VITE_OSRM_FOOT_URL: ${VITE_OSRM_FOOT_URL:-}
+        VITE_ROUTING_TIMEOUT_MS: ${VITE_ROUTING_TIMEOUT_MS:-}
+        VITE_GOAL_MIN_RADIUS_M: ${VITE_GOAL_MIN_RADIUS_M:-}
+        VITE_GOAL_MAX_RADIUS_M: ${VITE_GOAL_MAX_RADIUS_M:-}
+        VITE_MAX_SNAP_DISTANCE_M: ${VITE_MAX_SNAP_DISTANCE_M:-}
+        VITE_MAX_ROUTE_LENGTH_M: ${VITE_MAX_ROUTE_LENGTH_M:-}
+        VITE_MAX_GOAL_ATTEMPTS: ${VITE_MAX_GOAL_ATTEMPTS:-}
+        VITE_GOAL_THRESHOLD_M: ${VITE_GOAL_THRESHOLD_M:-}
+        VITE_START_FIX_MAX_ACCURACY_M: ${VITE_START_FIX_MAX_ACCURACY_M:-}
+        VITE_START_FIX_WAIT_MS: ${VITE_START_FIX_WAIT_MS:-}
+        VITE_GEOLOCATION_TIMEOUT_MS: ${VITE_GEOLOCATION_TIMEOUT_MS:-}
+        VITE_SIM_START_LAT: ${VITE_SIM_START_LAT:-}
+        VITE_SIM_START_LNG: ${VITE_SIM_START_LNG:-}
+    ports:
+      # localhost keeps the browser's secure context, which geolocation requires.
+      - "127.0.0.1:8080:8080"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8080/healthz"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 5s

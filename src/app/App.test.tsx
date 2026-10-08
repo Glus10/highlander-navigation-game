@@ -2,9 +2,10 @@ import { render, screen } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import App from './App'
 
-describe('App (toolchain smoke test)', () => {
-  it('renders the app heading', () => {
+describe('App', () => {
+  it('starts the game and reports unsupported location when the API is missing (jsdom has none)', async () => {
     render(<App />)
-    expect(screen.getByRole('heading', { name: 'Highlander Navigation Game' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Location not supported' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Retry' })).toBeInTheDocument()
   })
 })
