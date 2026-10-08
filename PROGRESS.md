@@ -7,7 +7,7 @@ _Last updated: 2026-10-08_
 - [x] Pre-work: hosted OSRM verification (read-only)
 - [x] Planning docs: REQUIREMENTS, DESIGN, ARCHITECTURE, TEST_PLAN, PLAN, PROGRESS
 - [x] Phase 0 — Repository bootstrap (P0) — verified 2026-10-08
-- [ ] Phase 1 — Domain logic (P0)
+- [x] Phase 1 — Domain logic (P0) — verified 2026-10-08
 - [ ] Phase 2 — Adapters (P0)
 - [ ] Phase 3 — Controller (P0)
 - [ ] Phase 4 — UI (P0)
@@ -17,7 +17,30 @@ _Last updated: 2026-10-08_
 - [ ] Phase 8 — Bonus re-routing (P2, optional, not approved)
 
 ## Current status
-Phase 0 complete on `main`; no game functionality yet. Awaiting approval to start Phase 1 (`phase/01-domain`).
+Phase 1 complete (pure domain logic + goal-generation service, fully unit-tested). No adapters or UI yet. Awaiting approval to start Phase 2 (`phase/02-adapters`).
+
+## Phase 1 — verification results (2026-10-08, branch `phase/01-domain`)
+| Command | Result |
+|---|---|
+| `npx vitest run` | Exit 0 — 7 files, **139 passed**, 0 failed, 0 skipped (U-01…U-17 + the existing smoke test; U-12 alone = 72 state×event cases) |
+| Mutation check (temporarily broke `selectShortestRoute` and the `won` latch, then restored) | 4 tests failed as expected; 139/139 after restoring — the tests detect real regressions |
+| `npm run typecheck` | Exit 0 |
+| `npm run lint` | Exit 0, no findings |
+| `npm run build` | Exit 0 (domain code not yet imported by the app, so bundle unchanged) |
+| `npm run test:e2e` | Exit 0 — 1 passed (smoke test, regression check) |
+| `grep` for React/Leaflet/`fetch`/`navigator`/`import.meta` in `src/domain`, `src/services` | None — layers are pure |
+
+**Implementation notes:**
+- **Snap mechanism:** goal snapping uses the `/route` response (D3a amendment), so there is one provider call per attempt.
+- **Distance tolerance:** inclusive distance checks use a 1e-6 m tolerance (`DISTANCE_EPSILON_M`), so points generated at exactly 300/800/25 m are not rejected by floating-point error.
+- **Missing config values:** missing or empty config values fall back to the approved defaults; present-but-invalid values are errors.
+- **Provider errors in `generateGoal`:**
+  - `noRoute` → try the next candidate.
+  - Any other `RoutingError` (including `invalidInput`) → `routingFailed` immediately.
+  - Abort → rejects with `AbortError`.
+
+## Phase 0 — push result
+`git push -u origin main` → exit 0, `origin/main` = `8f7873a`.
 
 ## Phase 0 — verification results (2026-10-08)
 | Command | Result |
@@ -69,6 +92,11 @@ Commits on `main`: `0bd75f1` (gitignore + docs + assets), followed by the scaffo
 
 ## Blockers
 None.
+
+## Open questions for Phase 2/3 (not yet decided)
+- **watchPosition timeout during play (HYPOTHESIS, to verify in Phase 2):**
+  - Risk: with `timeout: 15 s`, a stationary desktop may get repeated TIMEOUT errors from `watchPosition` once the start fix is taken. Per the approved state machine, `LOCATION_FAILED` in `playing` ends the game (`locationError`).
+  - If confirmed, a decision is needed on whether timeout/unavailable during play should be non-fatal (keep the last position) and only `denied` fatal.
 
 ## Known issues / risks
 - Public OSRM and OSM tiles have no SLA (accepted, documented).
