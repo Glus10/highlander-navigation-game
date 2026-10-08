@@ -32,7 +32,7 @@ Stack: **Vitest** (unit + integration, jsdom), **React Testing Library**, **Play
 | U-10 | FR-4 | Reducer: any event in `playing` other than RESTART/LOCATION_FAILED | Unit | `goal` reference unchanged |
 | U-11 | FR-8, EC-12 | Reducer: event with stale `sessionId` | Unit | State unchanged |
 | U-12 | — | Reducer: every state × every event | Unit | Only the transitions in ARCHITECTURE §3; others ignored |
-| U-13 | NFR-8, EC-14/15 | `validateConfig`: threshold ≥ minRadius, min ≥ max, negative, NaN, missing | Unit | Specific `ConfigError`s; valid defaults pass |
+| U-13 | NFR-8, EC-14/15 | `validateConfig`: threshold ≥ minRadius, min ≥ max, route < max radius, negative, zero, NaN, non-integer attempts, bad URL, out-of-range sim coords; missing/empty values | Unit | Specific `ConfigError`s for every invalid field; missing/empty values fall back to the approved defaults |
 | U-14 | FR-3 | `generateGoal`: attempt 1 invalid, attempt 2 valid | Unit | Returns attempt 2 goal = `snappedTo`; 2 provider calls |
 | U-15 | FR-10, EC-8/9 | `generateGoal`: 5 × NoRoute / invalid | Unit | `GOAL_FAILED` after exactly 5 calls |
 | U-16 | FR-11 | `generateGoal`: provider `unavailable` | Unit | Stops immediately with a routing failure (no new candidates) |
