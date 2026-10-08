@@ -8,7 +8,7 @@ _Last updated: 2026-10-08_
 - [x] Planning docs: REQUIREMENTS, DESIGN, ARCHITECTURE, TEST_PLAN, PLAN, PROGRESS
 - [x] Phase 0 — Repository bootstrap (P0) — verified 2026-10-08
 - [x] Phase 1 — Domain logic (P0) — verified 2026-10-08
-- [ ] Phase 2 — Adapters (P0)
+- [x] Phase 2 — Adapters (P0) — verified 2026-10-08
 - [ ] Phase 3 — Controller (P0)
 - [ ] Phase 4 — UI (P0)
 - [ ] Phase 5 — Docker + E2E on container (P0)
@@ -17,7 +17,35 @@ _Last updated: 2026-10-08_
 - [ ] Phase 8 — Bonus re-routing (P2, optional, not approved)
 
 ## Current status
-Phase 1 complete (pure domain logic + goal-generation service, fully unit-tested). No adapters or UI yet. Awaiting approval to start Phase 2 (`phase/02-adapters`).
+Phase 2 complete: OSRM routing adapter, browser and simulated location adapters, all tested. No controller or UI yet. Awaiting approval to start Phase 3 (`phase/03-controller`).
+
+## Phase 2 — verification results (2026-10-08, branch `phase/02-adapters`)
+| Command | Result |
+|---|---|
+| `npx vitest run` | Exit 0 — 10 files, **169 passed**, 0 failed, 0 skipped (adds A-01…A-05, A-07…A-09: 30 tests) |
+| Mutation check (removed throttle wait, timeout mapping, `clearWatch`; then restored) | 3 tests failed as expected (A-04, A-05, A-08); 169/169 after restoring |
+| `npm run typecheck` / `npm run lint` / `npm run build` | Exit 0 / exit 0, no findings / exit 0 |
+| `npm run test:e2e` | Exit 0 — 1 passed (smoke test, regression check) |
+| Purity grep on `src/domain`, `src/services` | Still no React/Leaflet/`fetch`/`navigator`/`import.meta` |
+| One-off live check (temporary test, not committed): real `OsrmRoutingProvider` + `generateGoal` from London (51.508, -0.1281) | `ready` on attempt 1 in 249 ms; snapped goal 699.8 m from start; shortest route 869.3 m, 91 points |
+| Fixture recording: 4 `curl` calls to FOSSGIS (≥1 s apart) | `osrm-route-two-routes.json` (1286.8/1272.5 m), `osrm-route-one-route.json` (488.1 m), `osrm-no-route.json` (HTTP 400), `osrm-invalid-value.json` (HTTP 400). Geometry trimmed to 3 points; hints removed |
+
+**watchPosition timeout question — investigated:**
+- **Experiment:** Playwright Chromium with an emulated position, `watchPosition({ timeout: 2000 })` held for 9 s, recorded in a scratch script.
+- **Result:** exactly **one fix and no TIMEOUT errors** after it.
+- **Conclusion:** the hypothesis is **not confirmed in Chromium**, so the approved behaviour stays (location error during play → `locationError`).
+- **Still untested:** Safari, Firefox and real (non-emulated) providers. Re-check during manual test M-01.
+
+**Implementation notes:**
+- **OSRM `NoSegment`:** a coordinate that can't be snapped is mapped to `noRoute`, the same as `NoRoute`, so it is treated as a bad candidate and generation retries.
+- **Throttle:** request starts are serialised through a queue. A request cancelled while waiting releases its slot to the next caller.
+- **Timeout:** implemented with `setTimeout` plus an internal `AbortController`, so it is testable with fake timers. A caller abort surfaces as `AbortError`, never as a `RoutingError`.
+- **Insecure context:** in an insecure context (non-localhost http), the browser adapter reports `unsupported` without calling the API.
+- **Simulator:** its fixes report 5 m accuracy, so they pass the start-fix gate immediately.
+- **No custom request headers:** they would trigger CORS preflights. The browser supplies User-Agent and Referer, as the FOSSGIS policy requires.
+
+## Phase 1 — merge result
+`phase/01-domain` pushed; merged into `main` with `--no-ff` as `e5efe17`; `main` pushed; 139/139 tests and typecheck re-verified on `main`.
 
 ## Phase 1 — verification results (2026-10-08, branch `phase/01-domain`)
 | Command | Result |
@@ -93,12 +121,8 @@ Commits on `main`: `0bd75f1` (gitignore + docs + assets), followed by the scaffo
 ## Blockers
 None.
 
-## Open questions for Phase 2/3 (not yet decided)
-- **watchPosition timeout during play (HYPOTHESIS, to verify in Phase 2):**
-  - Risk: with `timeout: 15 s`, a stationary desktop may get repeated TIMEOUT errors from `watchPosition` once the start fix is taken. Per the approved state machine, `LOCATION_FAILED` in `playing` ends the game (`locationError`).
-  - If confirmed, a decision is needed on whether timeout/unavailable during play should be non-fatal (keep the last position) and only `denied` fatal.
-
 ## Known issues / risks
+- `watchPosition` timeout behaviour in Safari/Firefox is unverified (Chromium verified OK).
 - Public OSRM and OSM tiles have no SLA (accepted, documented).
 - Goal-image cleanup quality is unknown until Phase 4.
 - The Mermaid diagrams in `ARCHITECTURE.md` have not been render-checked yet.

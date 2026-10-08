@@ -1,0 +1,57 @@
+{
+  "code": "Ok",
+  "routes": [
+    {
+      "legs": [
+        {
+          "steps": [],
+          "weight": 40.79,
+          "summary": "",
+          "duration": 390.6,
+          "distance": 488.1
+        }
+      ],
+      "weight_name": "routability",
+      "geometry": {
+        "coordinates": [
+          [
+            -0.127596,
+            51.507194
+          ],
+          [
+            -0.126112,
+            51.50814
+          ],
+          [
+            -0.123846,
+            51.510065
+          ]
+        ],
+        "type": "LineString"
+      },
+      "weight": 40.79,
+      "duration": 390.6,
+      "distance": 488.1
+    }
+  ],
+  "waypoints": [
+    {
+      "hint": "omitted",
+      "location": [
+        -0.127596,
+        51.507194
+      ],
+      "name": "Charing Cross",
+      "distance": 0.7229731473
+    },
+    {
+      "hint": "omitted",
+      "location": [
+        -0.123846,
+        51.510065
+      ],
+      "name": "Bedford Street",
+      "distance": 12.90472285
+    }
+  ]
+}
