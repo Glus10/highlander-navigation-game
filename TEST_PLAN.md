@@ -49,7 +49,7 @@ Stack: **Vitest** (unit + integration, jsdom), **React Testing Library**, **Play
 | I-01 | FR-2/3/5 | Controller happy path (fake providers) | Integration | idle → acquiring → generating → playing with goal + route |
 | I-02 | FR-2, EC-3 | Only coarse fixes for 10 s (fake timers) | Integration | Proceeds with the best fix + warning |
 | I-03 | FR-9 | Location denied → Retry | Integration | `locationError(denied)` → re-subscribes on Retry |
-| I-04 | FR-8, EC-12 | Restart while `generateGoal` is pending; old result resolves late | Integration | Old result ignored; new session goal shown |
+| I-04 | FR-8, EC-12 | Stale work: goal result resolving after its run was aborted (unmount / session effect re-run); fixes delivered to an old subscription after restart or re-run; StrictMode double-mount | Integration | Nothing stale is applied; exactly one session. (Restart is only offered in `playing`/`won`, per the approved state machine, so "restart during generation" cannot occur.) |
 | I-05 | EC-17 | Unmount during play | Integration | Location unsubscribed; request aborted |
 | I-06 | FR-9/10/11, FR-7 | Panels render for each error kind and for `won` | Integration (RTL) | Correct message, Retry/Restart buttons accessible by role |
 | I-07 | FR-12, AC-8 | Badge with sim on / off | Integration (RTL) | "SIMULATED LOCATION" present only with the flag |

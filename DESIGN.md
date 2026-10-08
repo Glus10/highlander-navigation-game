@@ -62,6 +62,8 @@ Randomness and time are **injected** (`rng`, fake timers), so all of these are d
 3. `generatingGoal`: `await generateGoal(...)` → `GOAL_READY { goal, route, approach }`, or `GOAL_FAILED`, or `ROUTING_FAILED`.
 4. `playing`: each fix → `POSITION_UPDATED`; the reducer applies `isGoalReached`.
 5. Restart/Retry → abort the controller, unsubscribe, bump `sessionId`, `START` again.
+- Implemented in `src/app/useGameController.ts`; adapters are created only in `src/app/services.ts` (composition root); `import.meta.env` is read only in `src/app/config.ts`.
+- A fix received while the goal is being generated is applied as soon as play starts.
 - Every dispatched async result carries its `sessionId`; the reducer **drops events from stale sessions**.
 - The location subscription is cleaned up on unmount and on restart (`useEffect` cleanup).
 
@@ -73,6 +75,7 @@ The route is computed once from the **start position**, so the approach line is 
 | Source | Mapped to | User sees |
 |--------|-----------|-----------|
 | Geolocation code 1/2/3, missing API | `LocationError.kind` | `locationError` panel with guidance + Retry |
+| Location error while the goal is being generated | Ignored (start fix already chosen); fatal again once `playing` | — |
 | Start fix > 100 m after 10 s | warning flag on `playing` state | Low-accuracy banner (game continues) |
 | OSRM `NoRoute` / validation fail | candidate rejected inside `generateGoal` | (transparent retry) |
 | Attempts exhausted | `goalGenerationFailed` | Error + Retry |

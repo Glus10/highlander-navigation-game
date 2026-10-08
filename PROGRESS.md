@@ -9,7 +9,7 @@ _Last updated: 2026-10-08_
 - [x] Phase 0 — Repository bootstrap (P0) — verified 2026-10-08
 - [x] Phase 1 — Domain logic (P0) — verified 2026-10-08
 - [x] Phase 2 — Adapters (P0) — verified 2026-10-08
-- [ ] Phase 3 — Controller (P0)
+- [x] Phase 3 — Controller (P0) — verified 2026-10-08
 - [ ] Phase 4 — UI (P0)
 - [ ] Phase 5 — Docker + E2E on container (P0)
 - [ ] Phase 6 — Hardening (P1)
@@ -17,7 +17,32 @@ _Last updated: 2026-10-08_
 - [ ] Phase 8 — Bonus re-routing (P2, optional, not approved)
 
 ## Current status
-Phase 2 complete: OSRM routing adapter, browser and simulated location adapters, all tested. No controller or UI yet. Awaiting approval to start Phase 3 (`phase/03-controller`).
+Phase 3 complete: config loading, composition root (real vs simulated location), and the `useGameController` session orchestration, all tested. No UI yet. Awaiting approval to start Phase 4 (`phase/04-ui`).
+
+## Phase 3 — verification results (2026-10-08, branch `phase/03-controller`)
+| Command | Result |
+|---|---|
+| `npx vitest run` | Exit 0 — 13 files, **199 passed**, 0 failed, 0 skipped (+30: controller I-01…I-05 plus extra cases, `loadConfig`, `parseSimulation`/`createServices`) |
+| Mutation check 1 (one run: removed the success-path abort check, the `onFix` stopped check, and `clearTimeout` in `stop`) | Only the `clearTimeout` removal was detected (1 failure, I-05 timer). The other two were **not detected** — both guards were redundant (`generateGoal` already rejects after abort; the stage checks already ignore a stopped run). The `onFix` check was removed as duplicate logic; the abort check is kept as an explicit one-line invariant (commented) |
+| Mutation check 2 (session-effect cleanup removed entirely) | 6 tests failed as expected (I-04 ×4, I-05 ×2); 199/199 after restoring |
+| `npm run typecheck` / `npm run lint` / `npm run build` | Exit 0 / exit 0, no findings / exit 0 |
+| `npm run test:e2e` | Exit 0 — 1 passed (smoke test, regression check) |
+| `grep import.meta src` (non-test) | Only `src/app/config.ts` |
+
+**Implementation notes:**
+- **One session per effect run:** the session effect is keyed on `sessionId` plus `config` and `services`. Cleanup aborts in-flight generation, unsubscribes location and clears the start-fix timer.
+- **Stale-result protection** comes from three layers:
+  1. the reducer's session-id check,
+  2. the per-run stage/abort guards,
+  3. `generateGoal`'s abort check.
+- **Location errors while generating the goal are ignored** (the start fix is already chosen); this matches the approved state machine, which has no such transition.
+- **Failure releases location:** goal-generation or routing failure unsubscribes from location until Retry.
+- **Late position:** a fix received during generation is applied immediately after `GOAL_READY`.
+- **StrictMode:** double-mounting dispatches START twice; the second is ignored, so there is exactly one session.
+- **`.env.example` sync check:** `.env.example` is verified against `DEFAULT_CONFIG` in a test. Vite refuses to serve `.env*` files, so the test reads it via `node:fs`.
+
+## Phase 2 — merge result
+`phase/02-adapters` pushed; merged into `main` with `--no-ff` as `eb14ede`; `main` pushed; 169/169 tests, typecheck and lint re-verified on `main`.
 
 ## Phase 2 — verification results (2026-10-08, branch `phase/02-adapters`)
 | Command | Result |
