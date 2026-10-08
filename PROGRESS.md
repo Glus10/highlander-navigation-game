@@ -10,14 +10,58 @@ _Last updated: 2026-10-08_
 - [x] Phase 1 — Domain logic (P0) — verified 2026-10-08
 - [x] Phase 2 — Adapters (P0) — verified 2026-10-08
 - [x] Phase 3 — Controller (P0) — verified 2026-10-08
-- [ ] Phase 4 — UI (P0)
-- [ ] Phase 5 — Docker + E2E on container (P0)
-- [ ] Phase 6 — Hardening (P1)
-- [ ] Phase 7 — Handoff (P1)
-- [ ] Phase 8 — Bonus re-routing (P2, optional, not approved)
+- [x] Phase 4 + 5 — UI and Docker Compose, combined under time pressure (P0) — verified 2026-10-08
+- [ ] Phase 6 — Hardening (P1) — **skipped** (time)
+- [ ] Phase 7 — Handoff (P1) — **skipped** (time; this file + README serve as the handoff)
+- [ ] Phase 8 — Bonus re-routing (P2) — **not implemented** (D5c)
 
 ## Current status
-Phase 3 complete: config loading, composition root (real vs simulated location), and the `useGameController` session orchestration, all tested. No UI yet. Awaiting approval to start Phase 4 (`phase/04-ui`).
+**All Part 1 P0 requirements are implemented and merged to `main`.**
+- **Implemented:**
+  - Real-location mode (default).
+  - Goal generation on the walkable network (ring → snap → validate → retry).
+  - Shortest walking route among OSRM's candidates, with a dashed approach line.
+  - Live ball marker; 25 m goal detection with latch.
+  - Loading, error and won screens.
+  - Simulation mode behind `?simulate=1` — for testing/demo only, not an assignment requirement.
+  - Docker Compose delivery on `http://localhost:8080`.
+- **Remaining:** P1 hardening and P2 bonus were skipped (see "Skipped scope").
+- **Not done yet:** manual real-location check M-01 in a real browser (see "Manual verification pending").
+
+## Phase 4 + 5 — verification results (2026-10-08, branch `phase/04-05-ui-docker`)
+| Command | Result |
+|---|---|
+| `npm test` | Exit 0 — 15 files, **209 passed**, 0 failed, 0 skipped (adds StatusPanel I-06, badge I-07, App) |
+| `npm run typecheck` / `npm run lint` / `npm run build` | Exit 0 / exit 0, no findings / exit 0 |
+| `npm run test:e2e` (vite preview, tiles blocked, OSRM stubbed with a recorded fixture) | **5 passed**: smoke; E-01 simulated walk → goal reached → play again; E-02 real browser geolocation path (`setGeolocation`); E-03 permission denied; E-04 routing HTTP 500 |
+| `docker compose up -d --build` | Built; container **healthy**; `/healthz` → `ok`; `/` → 200 (`Cache-Control: no-cache`); SPA deep link → 200; runs as uid 101 (`nginx`); image 82.2 MB |
+| `BASE_URL=http://localhost:8080 npx playwright test` | **5 passed** against the container |
+| Manual scripted check against the container, live tiles + live FOSSGIS OSRM, `?simulate=1` | Route 452 m drawn; clicking the goal → "Goal reached!"; 0 console errors; screenshots reviewed |
+| After merge on `main` | 209 passed; typecheck, lint, build exit 0 |
+
+Merges: `phase/03-controller` → `main` as `3f7e9af`; `phase/04-05-ui-docker` (commits `4ef7e03`, `d80d9ab`) → `main` as `f13044a`; all pushed.
+
+**Implementation notes:**
+- **Marker assets:** they are JPEGs with a painted checkerboard, and no image library was available, so they are shown with the agreed CSS fallback (crop/mask). Copies with a correct `.jpg` extension live in `src/ui/assets/` (content-hashed by Vite); the originals in `public/assets/` are untouched.
+- **react-leaflet `className`:** `Polyline` `className` must be a prop (not inside `pathOptions`), otherwise Leaflet ignores it.
+- **E-01 restart assertion:** E-01 only checks that "Play again" leaves the won state. With a fixed fixture, a new goal from the goal position is correctly rejected (0 m from the start).
+
+## Skipped scope (decided under time pressure)
+- **P1 (Phase 6):**
+  - nginx security headers / CSP (NFR-11)
+  - OSRM one retry with backoff (NFR-7)
+  - React error boundary + `logger` module (NFR-13)
+  - accuracy circle on the map (FR-13 — the low-accuracy text warning **is** implemented)
+  - README "Production considerations" (NFR-14)
+  - E-07 (headers/CSP check), A-06, I-08
+- **P1 (Phase 7):** `HANDOFF.md`.
+- **P2:** dynamic route re-calculation bonus (B-1 / D5c) and the optional live-OSRM E2E (E-08).
+- **Asset cleanup to true transparent PNGs** (D6e option B) — CSS fallback used instead.
+
+## Manual verification pending (must be done by a person)
+- **M-01:** real host location in Chrome and Safari on macOS (allow location; OS Location Services must allow the browser).
+- **M-02:** block location → guidance → re-allow → Retry.
+- **M-03:** visual check of the markers. The goal shows the checkerboard; this is a known limitation.
 
 ## Phase 3 — verification results (2026-10-08, branch `phase/03-controller`)
 | Command | Result |
@@ -147,10 +191,12 @@ Commits on `main`: `0bd75f1` (gitignore + docs + assets), followed by the scaffo
 None.
 
 ## Known issues / risks
-- `watchPosition` timeout behaviour in Safari/Firefox is unverified (Chromium verified OK).
-- Public OSRM and OSM tiles have no SLA (accepted, documented).
-- Goal-image cleanup quality is unknown until Phase 4.
-- The Mermaid diagrams in `ARCHITECTURE.md` have not been render-checked yet.
+- **Goal marker:** the goal asset still shows its painted checkerboard background inside the net (CSS crop fallback); the marker is also fairly small.
+- **watchPosition timeouts:** behaviour in Safari/Firefox is unverified (Chromium verified OK).
+- **No SLA on public services:** public OSRM (max 1 req/s) and OSM tiles have no SLA and need internet access (accepted, documented).
+- **Config needs a rebuild:** config is build-time, so changing it requires `docker compose up -d --build`.
+- **Mermaid diagrams:** the diagrams in `ARCHITECTURE.md` have not been render-checked.
 
 ## Remaining work
-Phases 0–7 per `PLAN.md`; Phase 8 only on explicit approval.
+- Manual checks M-01…M-03.
+- Optionally: the skipped P1 items above. P2 only on explicit approval.
