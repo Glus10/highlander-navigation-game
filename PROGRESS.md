@@ -6,7 +6,7 @@ _Last updated: 2026-10-08_
 - [x] Discovery and decision gates 1–6 (`DECISIONS.md`)
 - [x] Pre-work: hosted OSRM verification (read-only)
 - [x] Planning docs: REQUIREMENTS, DESIGN, ARCHITECTURE, TEST_PLAN, PLAN, PROGRESS
-- [ ] Phase 0 — Repository bootstrap (P0)
+- [x] Phase 0 — Repository bootstrap (P0) — verified 2026-10-08
 - [ ] Phase 1 — Domain logic (P0)
 - [ ] Phase 2 — Adapters (P0)
 - [ ] Phase 3 — Controller (P0)
@@ -17,7 +17,29 @@ _Last updated: 2026-10-08_
 - [ ] Phase 8 — Bonus re-routing (P2, optional, not approved)
 
 ## Current status
-Planning complete; **no application code, no tests, no commits yet.** `main` has no commits; all files are untracked. Awaiting approval to start Phase 0.
+Phase 0 complete on `main`; no game functionality yet. Awaiting approval to start Phase 1 (`phase/01-domain`).
+
+## Phase 0 — verification results (2026-10-08)
+| Command | Result |
+|---|---|
+| `npm ci` (from an empty `node_modules`) | Exit 0, 0 vulnerabilities |
+| `npm run typecheck` (`tsc -b`, strict) | Exit 0 |
+| `npm run lint` (oxlint) | Exit 0, no findings |
+| `npm test` (Vitest) | Exit 0 — 1 file, **1 passed**, 0 failed, 0 skipped |
+| `npm run build` | Exit 0 — `dist/assets/index-*.js` 219.59 kB (gzip 68.60 kB) |
+| `npx playwright install chromium` | Exit 0 — Chrome Headless Shell 156.0.8078.4 |
+| `npm run test:e2e` (Playwright vs `vite preview` of the production build) | Exit 0 — **1 passed** (`app shell loads`) |
+| `npm run dev` + `curl localhost:5199` (manual smoke check) | Served the page with title "Highlander Navigation Game" |
+
+Commits on `main`: `0bd75f1` (gitignore + docs + assets), followed by the scaffold commit. The push result is recorded at the start of Phase 1.
+
+**Deviations from plan:**
+- **Lint tool:** oxlint (the current Vite scaffold default) instead of ESLint. Same purpose, fewer dependencies; `react/rules-of-hooks` is enabled.
+- **`strict` setting:** the scaffold's tsconfig did not set `"strict": true`; it was added to both tsconfigs.
+
+**Versions:**
+- Runtime: Vite 8.3, React 19.2, TypeScript 6.0.
+- Tests: Vitest 5.0.3, Playwright 1.64.0, jsdom 30.
 
 ## Commands actually executed
 | Command (summarised) | Result |

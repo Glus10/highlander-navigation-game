@@ -24,7 +24,7 @@ branch → implement → test → typecheck/lint/build → review diff → commi
 - **Requirements:** NFR-3, NFR-9, NFR-10 (tooling), NFR-2 (skeleton)
 - **Scope:**
   - `.gitignore` **first** (`node_modules`, `dist`, `.env*` except `.env.example`, `coverage`, `playwright-report`, `test-results`, `.DS_Store`).
-  - Vite React-TS scaffold, strict TS, ESLint.
+  - Vite React-TS scaffold, strict TS, oxlint (Vite scaffold default; replaces the originally planned ESLint).
   - Vitest + jsdom + RTL setup; Playwright installed and configured (Chromium, `webServer` = `vite preview`).
   - npm scripts: `dev`, `build`, `preview`, `typecheck`, `lint`, `test`, `test:e2e`.
   - `.env.example` (non-secret defaults); README skeleton.

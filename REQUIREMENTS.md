@@ -33,7 +33,7 @@ Sources: `TASK.md` (primary), `DECISIONS.md` (approved interpretations). Priorit
 | NFR-6 | Every OSRM request has a **timeout (~8 s)** and is cancellable (`AbortSignal`). | P0 |
 | NFR-7 | One retry with backoff for transient OSRM failures (network / 5xx / 429 / timeout). | P1 |
 | NFR-8 | All tunable values live in one config module (build-time `VITE_*`), **validated at startup**; invalid config → fail fast with a clear error. | P0 |
-| NFR-9 | Layered, framework-independent domain logic; strict TypeScript; lint clean. | P0 |
+| NFR-9 | Layered, framework-independent domain logic; strict TypeScript; lint clean (oxlint). | P0 |
 | NFR-10 | Automated unit, integration and E2E tests per `TEST_PLAN.md`; typecheck and build pass. | P0 |
 | NFR-11 | Security headers in nginx: CSP (connect-src = OSRM host, img-src = OSM tile host), `nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`. | P1 |
 | NFR-12 | Production serving: unprivileged nginx, pinned images, `.dockerignore`, healthcheck, restart policy, long cache for hashed assets, no-cache for `index.html`, compression. | P1 (healthcheck P0) |

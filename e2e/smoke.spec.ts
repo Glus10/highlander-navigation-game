@@ -1,0 +1,7 @@
+import { expect, test } from '@playwright/test'
+
+test('app shell loads', async ({ page }) => {
+  await page.goto('/')
+  await expect(page).toHaveTitle('Highlander Navigation Game')
+  await expect(page.getByRole('heading', { name: 'Highlander Navigation Game' })).toBeVisible()
+})
